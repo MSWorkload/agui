@@ -65,7 +65,31 @@ AZURE_OPENAI_DEPLOYMENT_NAME="gpt-4o-mini"
 az login
 ```
 
-### 3. Install Dependencies
+### 3. Configure Entra ID Authentication (Optional)
+
+If you want to secure the backend with authentication:
+
+```bash
+# From project root
+./setup-entra-auth.sh
+```
+
+This creates three Entra ID app registrations:
+- Frontend SPA (for React app)
+- Backend API (for the Python server)
+- Python CLI client (for testing with `client_raw.py`)
+
+After running the script:
+1. Verify `.env` contains the Entra ID variables
+2. Grant admin consent for API permissions:
+   ```bash
+   az ad app permission admin-consent --id <frontend-client-id>
+   az ad app permission admin-consent --id <python-client-id>
+   ```
+
+**Note:** If Entra ID variables are missing or empty in `.env`, authentication is disabled (good for local testing).
+
+### 4. Install Dependencies
 
 **Python backend:**
 ```bash

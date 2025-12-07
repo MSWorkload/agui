@@ -10,6 +10,27 @@ The application consists of three main components:
 2. **CopilotKit Runtime** - Middleware layer handling agent coordination
 3. **React Frontend** - User interface for interacting with the agent
 
+## Setup
+
+### Configure Entra ID Authentication (Optional)
+
+If you want to secure the backend with authentication:
+
+```bash
+./setup-entra-auth.sh
+```
+
+This creates three Entra ID app registrations (frontend SPA, backend API, Python CLI client). After running:
+
+1. Verify `.env` in `src/` contains the Entra ID variables
+2. Grant admin consent:
+   ```bash
+   az ad app permission admin-consent --id <frontend-client-id>
+   az ad app permission admin-consent --id <python-client-id>
+   ```
+
+**Note:** Authentication is disabled if Entra ID variables are empty in `.env`.
+
 ## Running
 
 Start all three components in separate terminals:
