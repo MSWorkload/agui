@@ -57,3 +57,18 @@ npm run dev
 Runs on http://127.0.0.1:5173
 
 Open http://127.0.0.1:5173 in your browser.
+
+### Alternative: Run All Services with One Command
+
+Instead of starting each service separately, use the development script:
+
+```bash
+cd src
+./dev.sh
+```
+
+This script:
+- Starts all three services (backend, runtime, frontend)
+- Shows color-coded logs from each service
+- Automatically clears ports if needed
+- Stops all services when you press Ctrl+C
