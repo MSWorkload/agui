@@ -21,7 +21,13 @@ COPY pyproject.toml ./
 RUN uv sync --no-dev
 
 # Copy application code
+COPY config.py ./
 COPY server.py ./
+COPY auth/ ./auth/
+COPY tools/ ./tools/
+COPY agents/ ./agents/
+COPY api/ ./api/
+COPY utils/ ./utils/
 
 # Expose port
 EXPOSE 8888
