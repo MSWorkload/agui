@@ -19,6 +19,7 @@ from azure.identity import DefaultAzureCredential
 from fastapi import FastAPI, HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
 # Load environment variables
 load_dotenv()
@@ -308,11 +309,13 @@ def _weather_code_to_condition(code: int) -> str:
         return "cloudy"
 
 
-@ai_function(description="Get the current date and time")
+@ai_function(description="Get the current date and time in UTC (data is displayed in a UI widget - do not repeat the time in your response)")
 def get_current_time() -> str:
-    """Get the current date and time."""
-    now = datetime.now()
-    return f"Current date and time: {now.strftime('%Y-%m-%d %H:%M:%S')}"
+    """Get the current date and time in UTC. The result is displayed in a visual clock widget in the UI."""
+    from datetime import timezone
+    now = datetime.now(timezone.utc)
+    # Return ISO format for easy parsing in client
+    return now.isoformat()
 
 
 @ai_function(description="Calculate a mathematical expression")
@@ -363,18 +366,28 @@ bedtime_story_tool = bedtime_story_agent.as_tool(
 agent = ChatAgent(
     name="AGUIAssistant",
     instructions="""You are a helpful assistant with access to tools.
-You can:
-- Get weather information for any location
-- Tell the current date and time
-- Calculate mathematical expressions
-- Tell bedtime stories for children (use the tell_bedtime_story tool)
 
-Be concise and friendly in your responses. Use your tools when appropriate.
+CRITICAL RULE: Call each tool exactly ONCE per user request. Never call the same tool multiple times.
 
-IMPORTANT: When tools return data that is displayed visually to the user (like weather widgets or story cards), 
-add brief helpful context, recommendations, or insights rather than repeating what the user can already see.
-For example, after weather data, you might say "Great day for outdoor activities!" instead of listing the temperature and conditions again.
-For bedtime stories, simply let the story speak for itself without summarizing it.""",
+When the user asks for TIME:
+- Call get_current_time ONCE
+- Respond with exactly: "⏰" (just the emoji, nothing else)
+- The UI shows a visual clock
+
+When the user asks for WEATHER:
+- Call get_weather ONCE  
+- Add a brief friendly comment about the weather
+- The UI shows a visual weather card
+
+For CALCULATIONS:
+- Call calculate ONCE
+- Explain the result
+
+For BEDTIME STORIES:
+- Call tell_bedtime_story ONCE
+- Let the story speak for itself
+
+NEVER call a tool more than once per request.""",
     chat_client=chat_client,
     tools=[get_weather, get_current_time, calculate, bedtime_story_tool],
     middleware=[tool_logging_middleware],
@@ -442,7 +455,7 @@ def health_check():
 
 def main():
     """Run the server."""
-    import uvicorn
+    
     
     print("🚀 Starting AG-UI server at http://127.0.0.1:8888")
     

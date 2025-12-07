@@ -9,6 +9,8 @@ services:
       - "8888:8888"
     env_file:
       - .env
+    environment:
+      - TZ=Europe/Brussels
     volumes:
       # Mount Azure CLI credentials for local development (read-write for session files)
       - ~/.azure:/root/.azure

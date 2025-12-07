@@ -41,8 +41,16 @@ function parseWeatherResult(result: string | object): WeatherData | null {
       return null;
     }
     
+    // Check for error in the response
     if (data.error) {
-      return null;
+      return {
+        location: "",
+        temperature: 0,
+        humidity: 0,
+        wind_speed: 0,
+        condition: "",
+        error: String(data.error)
+      };
     }
     
     // Validate required fields exist
@@ -169,62 +177,115 @@ export function WeatherCard({ location, status, result }: WeatherCardProps) {
           `}</style>
         </div>
       ) : weatherData ? (
-        <>
-          {/* Temperature and Icon */}
+        weatherData.error ? (
+          /* Error state with subtle styling */
           <div
             style={{
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "16px",
+              padding: "30px 20px",
+              textAlign: "center",
             }}
           >
+            <div style={{ fontSize: "48px", marginBottom: "12px", opacity: 0.5 }}>🔍</div>
             <div
               style={{
-                fontSize: "64px",
-                fontWeight: 300,
-                lineHeight: 1,
+                fontSize: "16px",
+                fontWeight: 500,
+                marginBottom: "6px",
+                color: "rgba(255, 255, 255, 0.95)",
               }}
             >
-              {Math.round(weatherData.temperature)}°
+              Location Not Found
             </div>
-            <div style={{ fontSize: "64px" }}>{config.icon}</div>
+            <div
+              style={{
+                fontSize: "13px",
+                color: "rgba(255, 255, 255, 0.7)",
+                lineHeight: "1.4",
+              }}
+            >
+              Could not find weather data for this location
+            </div>
           </div>
+        ) : (
+          <>
+            {/* Temperature and Icon */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "16px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "64px",
+                  fontWeight: 300,
+                  lineHeight: 1,
+                }}
+              >
+                {Math.round(weatherData.temperature)}°
+              </div>
+              <div style={{ fontSize: "64px" }}>{config.icon}</div>
+            </div>
 
-          {/* Condition */}
-          <div
-            style={{
-              fontSize: "20px",
-              textTransform: "capitalize",
-              fontWeight: 500,
-              opacity: 0.95,
-            }}
-          >
-            {weatherData.condition}
-          </div>
+            {/* Condition */}
+            <div
+              style={{
+                fontSize: "20px",
+                textTransform: "capitalize",
+                fontWeight: 500,
+                opacity: 0.95,
+              }}
+            >
+              {weatherData.condition}
+            </div>
 
-          {/* Weather details footer */}
-          <div
-            style={{
-              marginTop: "16px",
-              paddingTop: "16px",
-              borderTop: "1px solid rgba(255,255,255,0.3)",
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: "13px",
-              opacity: 0.9,
-            }}
-          >
-            <span>💧 {weatherData.humidity}%</span>
-            <span>💨 {weatherData.wind_speed} km/h</span>
-          </div>
-        </>
+            {/* Weather details footer */}
+            <div
+              style={{
+                marginTop: "16px",
+                paddingTop: "16px",
+                borderTop: "1px solid rgba(255,255,255,0.3)",
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: "13px",
+                opacity: 0.9,
+              }}
+            >
+              <span>💧 {weatherData.humidity}%</span>
+              <span>💨 {weatherData.wind_speed} km/h</span>
+            </div>
+          </>
+        )
       ) : (
-        <div style={{ textAlign: "center", padding: "20px 0", color: "#666" }}>
-          <p>Unable to parse weather data</p>
-          <p style={{ fontSize: "12px", marginTop: "8px" }}>
-            {typeof result === "string" ? result : JSON.stringify(result)}
-          </p>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            padding: "30px 20px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: "48px", marginBottom: "12px", opacity: 0.5 }}>☁️</div>
+          <div style={{ fontSize: "16px", fontWeight: 500, color: "rgba(255, 255, 255, 0.95)" }}>
+            Unable to Load Weather
+          </div>
+          <div
+            style={{
+              fontSize: "13px",
+              color: "rgba(255, 255, 255, 0.7)",
+              marginTop: "6px",
+              maxWidth: "250px",
+              lineHeight: "1.4"
+            }}
+          >
+            Please try again later
+          </div>
         </div>
       )}
     </div>

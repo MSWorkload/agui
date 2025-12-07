@@ -5,19 +5,25 @@ interface ClockCardProps {
   result?: string;
 }
 
-// Parse the time result string: "Current date and time: 2025-12-04 18:30:45"
+// Parse ISO format UTC time and convert to local timezone
 function parseTimeResult(result: string): { date: string; time: string; hours: number; minutes: number; seconds: number } | null {
-  const match = result.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
-  if (match) {
-    return {
-      date: match[1],
-      time: `${match[2]}:${match[3]}:${match[4]}`,
-      hours: parseInt(match[2], 10),
-      minutes: parseInt(match[3], 10),
-      seconds: parseInt(match[4], 10),
-    };
+  try {
+    // Parse ISO format from server (UTC time)
+    const utcDate = new Date(result);
+    
+    // Get local time components
+    const hours = utcDate.getHours();
+    const minutes = utcDate.getMinutes();
+    const seconds = utcDate.getSeconds();
+    
+    // Format date and time in local timezone
+    const date = utcDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    const time = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    return { date, time, hours, minutes, seconds };
+  } catch (e) {
+    return null;
   }
-  return null;
 }
 
 // Format date nicely
