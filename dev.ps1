@@ -30,5 +30,30 @@ Write-Host ""
 Write-Host "Press Ctrl+C to stop all services" -ForegroundColor Yellow
 Write-Host ""
 
+# Free up commonly used dev ports if already occupied
+function Kill-Port {
+    param([int]$Port)
+    try {
+        $conns = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
+        if ($conns) {
+            $pids = $conns | Select-Object -ExpandProperty OwningProcess | Sort-Object -Unique
+            foreach ($pid in $pids) {
+                try {
+                    $proc = Get-Process -Id $pid -ErrorAction SilentlyContinue
+                    if ($proc) {
+                        Write-Host "🛑 Killing process $($proc.ProcessName) (PID $pid) on port $Port" -ForegroundColor Yellow
+                        Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+                    }
+                } catch {}
+            }
+        }
+    } catch {}
+}
+
+# Ports: Frontend (5173), Runtime (3001), Backend (8888)
+Kill-Port -Port 5173
+Kill-Port -Port 3001
+Kill-Port -Port 8888
+
 # Run the dev.sh script in WSL
 wsl bash -c "cd /mnt/c/temp/AI/AGUI/agui/src && ./dev.sh"
