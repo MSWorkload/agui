@@ -13,6 +13,62 @@ from azure.identity import DefaultAzureCredential
 from azure.search.documents import SearchClient
 
 
+_SELECT_FIELDS = [
+    "ProductID",
+    "ProductName",
+    "ProductCategory",
+    "Price",
+    "ProductDescription",
+    "ProductPunchLine",
+    "ImageURL",
+]
+
+_FALLBACK_NAME_FIELDS = (
+    "ProductName",
+    "name",
+    "title",
+    "metadata_storage_name",
+    "metadata_storage_path",
+)
+
+_FALLBACK_ID_FIELDS = (
+    "ProductID",
+    "productId",
+    "id",
+    "metadata_storage_name",
+    "metadata_storage_path",
+)
+
+_FALLBACK_DESC_FIELDS = (
+    "ProductDescription",
+    "description",
+    "content",
+    "text",
+    "chunk",
+)
+
+_FALLBACK_PUNCHLINE_FIELDS = (
+    "ProductPunchLine",
+    "punchLine",
+    "summary",
+    "headline",
+)
+
+_FALLBACK_CATEGORY_FIELDS = (
+    "ProductCategory",
+    "category",
+    "categories",
+    "tags",
+)
+
+_FALLBACK_IMAGE_FIELDS = (
+    "ImageURL",
+    "imageUrl",
+    "image",
+    "image_url",
+)
+
+
 def _get_env(name: str) -> str:
     value = os.environ.get(name, "").strip()
     return value
@@ -88,16 +144,29 @@ def search_catalog(query: str, top: int = 5) -> str:
         results: list[dict[str, Any]] = []
         for r in results_iter:
             doc = dict(r)
+
+            product_id = _get_field(doc, *_FALLBACK_ID_FIELDS)
+            name = _get_field(doc, *_FALLBACK_NAME_FIELDS)
+            description = _get_field(doc, *_FALLBACK_DESC_FIELDS)
+            punchline = _get_field(doc, *_FALLBACK_PUNCHLINE_FIELDS)
+            category = _get_field(doc, *_FALLBACK_CATEGORY_FIELDS)
+            image_url = _get_field(doc, *_FALLBACK_IMAGE_FIELDS)
+            price = _get_field(doc, "Price", "price")
+
+            # If core fields are missing, surface the document keys for troubleshooting instead of blank UI rows.
+            missing_core_fields = not (name or product_id or description)
+
             results.append(
                 {
-                    "productId": _get_field(doc, "ProductID", "productId", "id"),
-                    "name": _get_field(doc, "ProductName", "name"),
-                    "category": _get_field(doc, "ProductCategory", "category"),
-                    "price": _get_field(doc, "Price", "price"),
-                    "description": _get_field(doc, "ProductDescription", "description"),
-                    "punchLine": _get_field(doc, "ProductPunchLine", "punchLine"),
-                    "imageUrl": _get_field(doc, "ImageURL", "imageUrl"),
+                    "productId": product_id,
+                    "name": name,
+                    "category": category,
+                    "price": price,
+                    "description": description,
+                    "punchLine": punchline,
+                    "imageUrl": image_url,
                     "score": getattr(r, "@search.score", None) if hasattr(r, "__getattr__") else doc.get("@search.score"),
+                    "debugKeys": list(doc.keys()) if missing_core_fields else None,
                 }
             )
 

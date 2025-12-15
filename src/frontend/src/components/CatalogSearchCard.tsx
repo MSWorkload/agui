@@ -10,6 +10,7 @@ type CatalogSearchResult = {
     punchLine?: string;
     imageUrl?: string;
     score?: number;
+    debugKeys?: string[] | null;
   }>;
   error?: string;
 };
@@ -90,7 +91,7 @@ export function CatalogSearchCard(props: { status: string; result: unknown }) {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: "12px" }}>
                         <div style={{ fontWeight: 600 }}>
-                          {p.name || "(Unnamed product)"}
+                          {p.name || p.productId || "(Unnamed product)"}
                           {p.productId ? (
                             <span style={{ opacity: 0.7, marginLeft: "8px", fontWeight: 400 }}>
                               {p.productId}
@@ -117,6 +118,12 @@ export function CatalogSearchCard(props: { status: string; result: unknown }) {
                       {p.description ? (
                         <div style={{ marginTop: "6px", opacity: 0.9 }}>
                           {p.description}
+                        </div>
+                      ) : null}
+
+                      {p.debugKeys && p.debugKeys.length ? (
+                        <div style={{ marginTop: "6px", fontSize: "12px", opacity: 0.7 }}>
+                          Debug keys: {p.debugKeys.join(", ")}
                         </div>
                       ) : null}
                     </div>
